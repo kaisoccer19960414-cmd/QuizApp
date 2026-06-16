@@ -14,3 +14,7 @@
 ->もちろん外枠のフレームやら、後部座席やら、カーナビやら、トランクルームやら、エアコンやら、ドアやら、シートベルト....が無い
 
 自分がやりたかったことは表現できたので、あとは補助機能追加とコードを見やすく整理する。(死にコード撲滅、メソッドに色付け、拡張性を考える)
+<img width="1147" height="469" alt="スクリーンショット 2026-06-17 020159" src="https://github.com/user-attachments/assets/c15f89c6-1571-4bae-9260-18d96d247d0f" />
+<img width="1008" height="386" alt="スクリーンショット 2026-06-17 020220" src="https://github.com/user-attachments/assets/d8a59426-8498-4d21-ae15-6cb0e9430e42" />
+<img width="693" height="547" alt="スクリーンショット 2026-06-17 020345" src="https://github.com/user-attachments/assets/0ff7c3d6-455c-4ca1-a6c4-f9c58622c967" />
+
