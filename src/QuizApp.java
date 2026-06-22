@@ -23,6 +23,7 @@ public class QuizApp {
 
     public static void main(String[] args) throws Exception {
 
+        
         questionList = getAllQuestions();
         createFloatingPalette();
 
