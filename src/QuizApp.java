@@ -7,10 +7,12 @@ import java.awt.datatransfer.*;
 import java.awt.Toolkit;
 
 class Question {
+    int id; // 追加
     String mondai, kaisetsu, seikai,type;
     String choiceA, choiceB, choiceC, choiceD; // 四択用
 
-    Question(String mondai, String kaisetsu, String seikai,String type) {
+    Question(int id,String mondai, String kaisetsu, String seikai,String type) {
+        this.id=id;
         this.mondai = mondai;
         this.kaisetsu = kaisetsu;
         this.seikai = seikai;
@@ -140,8 +142,9 @@ public class QuizApp {
             for (String c : choices) {
                 JButton btn = new JButton(c);
                 btn.addActionListener(e -> {
-                    if (c.equals(q.seikai)) kaisetsuArea.setText("正解！");
-                    else kaisetsuArea.setText("不正解！\n解説: " + q.kaisetsu);
+                    if (c.equals(q.seikai)) {kaisetsuArea.setText("正解！");
+                    recordResult(q.id, 1); }// 記録！6/25
+                    else {kaisetsuArea.setText("不正解！\n解説: " + q.kaisetsu);recordResult(q.id, 0);}
                 });
                 btnPanel.add(btn);
             }
@@ -152,22 +155,48 @@ public class QuizApp {
             btnPanel.add(b1); btnPanel.add(b2);
         }
 
-        JButton prevBtn = new JButton("戻る"), nextBtn = new JButton("次へ");
+        JButton prevBtn = new JButton("戻る");
+        JButton nextBtn = new JButton("次へ");
+        JButton delBtn = new JButton("削除");
+
         prevBtn.addActionListener(e -> { if(currentIndex > 0) { currentIndex--; refreshUI(); } });
         nextBtn.addActionListener(e -> { if(currentIndex < questionList.size()-1) { currentIndex++; refreshUI(); } });
+        delBtn.addActionListener(e -> {
+            int confirm = JOptionPane.showConfirmDialog(null, "この問題を削除しますか？", "確認", JOptionPane.YES_NO_OPTION);
+            if (confirm == JOptionPane.YES_OPTION) {
+                deleteQuestion(questionList.get(currentIndex).id); // 削除実行
+                questionList = getAllQuestions(); // リストを最新化
+                if (currentIndex >= questionList.size()) currentIndex--; // インデックス調整
+                if (currentIndex < 0) currentIndex = 0;
+                refreshUI();
+            }
+        });
 
         btnPanel.add(prevBtn); btnPanel.add(nextBtn);
+        btnPanel.add(Box.createHorizontalGlue());
+        btnPanel.add(delBtn); // パネルに追加
         btnPanel.revalidate(); btnPanel.repaint();
     }
 
     public static List<Question> getAllQuestions() {
         List<Question> list = new ArrayList<>();
         try (Connection conn = DriverManager.getConnection("jdbc:sqlite:C:/Users/user/Desktop/unko.db")) {
-            ResultSet rs = conn.createStatement().executeQuery("SELECT MONDAI, KAISETU, SEIKAI, type FROM unko");
-            while (rs.next()) list.add(new Question(rs.getString("MONDAI"), rs.getString("KAISETU"), rs.getString("SEIKAI"), rs.getString("type")));
+            ResultSet rs = conn.createStatement().executeQuery("SELECT id,MONDAI, KAISETU, SEIKAI, type FROM unko");
+            while (rs.next()) list.add(new Question(rs.getInt("id"),rs.getString("MONDAI"), rs.getString("KAISETU"), rs.getString("SEIKAI"), rs.getString("type")));
         } catch (SQLException e) { e.printStackTrace(); }
         return list;
     }
+    //---------------------------------------------------------
+    public static void deleteQuestion(int id) {
+        try (Connection conn = DriverManager.getConnection("jdbc:sqlite:C:/Users/user/Desktop/unko.db")) {
+            PreparedStatement pstmt = conn.prepareStatement("DELETE FROM unko WHERE id = ?");
+            pstmt.setInt(1, id);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
     //-----------------------------------------------------------------------------------------
 
     // modeは "2" か "4"
@@ -212,5 +241,15 @@ public class QuizApp {
             e.printStackTrace();
         }
     }
+    //-----------------------------------------追加6/25↓  ログ記録用メソッド----------------------------
+    public static void recordResult(int id, int isCorrect) {
+        try (Connection conn = DriverManager.getConnection("jdbc:sqlite:C:/Users/user/Desktop/unko.db")) {
+            PreparedStatement pstmt = conn.prepareStatement("INSERT INTO study_logs (mondai_id, is_correct) VALUES (?, ?)");
+            pstmt.setInt(1, id);
+            pstmt.setInt(2, isCorrect);
+            pstmt.executeUpdate();
+        } catch (SQLException e) { e.printStackTrace(); }
+    }
+
 
 }
